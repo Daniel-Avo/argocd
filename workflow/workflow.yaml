@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: my-workflow
+spec:
+  entrypoint: ABCD-dag
+  templates:
+  - name: ABCD-dag
+    dag:
+      tasks:
+      - name: A
+        template: busybox-echo
+        arguments:
+          parameters: [{name: message, value: Step A}]
+      - name: B
+        dependencies: [A]
+        template: busybox-echo
+        arguments:
+          parameters: [{name: message, value: Step B}]
+      - name: C
+        dependencies: [A]
+        template: busybox-echo
+        arguments:
+          parameters: [{name: message, value: Step C}]
+      - name: D
+        dependencies: [B, C]
+        template: busybox-echo
+        arguments:
+          parameters: [{name: message, value: Step D}]
+
+  - name: busybox-echo
+    inputs:
+      parameters:
+      - name: message
+    container:
+      image: busybox:latest
+      command: [echo, "{{inputs.parameters.message}}"]
